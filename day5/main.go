@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -178,11 +177,42 @@ func task2(seedPairs []int, relations map[Mapping][]Range, mapping map[string]st
     next := mapping[env]
 
     rangeArr := relations[Mapping{ dest: next, src: env }]
-      
     newIntervals := []Interval{}
 
+    count := len(itvs)
 
-    return res
+    for i := 0; i < count; i++ {
+      itv := itvs[i]
+      found := false
+      for _, rng := range rangeArr {
+        src := rng.src
+        dest := rng.dest
+        length := rng.length
+        rngItv := Interval{ start: src, end: src + length - 1 } 
+        left := max(rngItv.start, itv.start)
+        right := min(rngItv.end, itv.end)
+        if left <= right {
+          overlapped := Interval{start: left - src + dest, end: right - src + dest }
+          newIntervals = append(newIntervals, overlapped)
+          if itv.start < left {
+            itvs = append(itvs, Interval{start: itv.start, end: left - 1 })
+          }
+          if itv.end > right {
+            itvs = append(itvs, Interval{start: right + 1, end: itv.end })
+          }
+          count = len(itvs)
+
+          found = true
+          break
+        }
+      }
+      
+      if !found {
+        newIntervals = append(newIntervals, itv)
+      }
+    }
+
+    return solveInterval(newIntervals, next)
   }
 
   intervals := []Interval{}
@@ -190,8 +220,6 @@ func task2(seedPairs []int, relations map[Mapping][]Range, mapping map[string]st
   for i := 0; i < len(seedPairs); i += 2 {
     intervals = append(intervals, Interval{ start: seedPairs[i], end: seedPairs[i] + seedPairs[i+1] - 1 })
   }
-
-
 
   
   return solveInterval(intervals, "seed")
