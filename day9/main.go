@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -43,8 +44,12 @@ func main() {
   res1 := 0
   res2 := 0
   for _, history := range input {
-    res1 += task(parseInput(strings.Fields(history)), true)
-    res2 += task(parseInput(strings.Fields(history)), false)
+    nums := parseInput(strings.Fields(history))
+    res1 += task(nums, true)
+
+    nums = parseInput(strings.Fields(history))
+    slices.Reverse(nums)
+    res2 += task(nums, false)
   }
 
   fmt.Println(res1)
@@ -65,37 +70,28 @@ func parseInput(s []string) []int {
   return res
 }
 
-func task(nums []int, nextHistory bool) int {
+func task(nums []int, findNext bool) int {
   res := 0
   
   size := len(nums)
 
-
   for i := size - 1; i > 1; i-- {
     nonZeroDiff := 0
 
-    if nextHistory {
-      for j := 0; j < i; j++ {
-        nums[j] = nums[j + 1] - nums[j]
-        if nums[j] != 0 {
-          nonZeroDiff++
-        }
+    for j := 0; j < i; j++ {
+      nums[j] = nums[j + 1] - nums[j]
+      if nums[j] != 0 {
+        nonZeroDiff++
       }
-      
-      res += nums[i]
-    } else {
-      for j := size - 1; j >= size - i; j-- {
-        nums[j] = nums[j] - nums[j - 1]
-        if nums[j] != 0 {
-          nonZeroDiff++
-        }
-      }
-      diff := nums[size - i - 1] 
-      if (size - i) % 2 == 1 {
-        diff *= -1
-      }
-      res -= diff
     }
+
+    sign := 1
+    if !findNext && (size - 1) % 2 == 1 {
+      sign = -1
+    }
+    
+    res += nums[i] * sign
+
     if nonZeroDiff == 0 {
       break
     }
